@@ -3,11 +3,9 @@
 
 const path = require('path');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
 const entry = ['whatwg-fetch', './src/index'];
+
 const plugins = [
-    new ExtractTextPlugin('bundle.css', { allChunks: true }),
     new webpack.DefinePlugin({
         'process.env': {
             NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
@@ -23,18 +21,16 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 module.exports = {
-    entry,
-
+    mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     resolve: {
         extensions: ['.scss', '.css', '.js', '.jsx', '.json'],
     },
-
+    entry,
     output: {
-        path: path.join(__dirname, 'dist/public'),
+        path: path.resolve(__dirname, 'dist/public'),
         filename: 'bundle.js',
         publicPath: '/static/',
     },
-
     module: {
         rules: [
             {
@@ -44,32 +40,39 @@ module.exports = {
                 include: path.join(__dirname, 'src'),
             },
             {
-                test: /(\.scss)$/,
-                loader: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: [
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                sourceMap: true,
-                                modules: true,
-                                importLoaders: 1,
-                                localIdentName: '[name]__[local]___[hash:base64:5]',
-                            },
+                test: /\.scss$/,
+                use: [
+                    {
+                        loader: 'style-loader',
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: true,
+                            modules: true,
+                            importLoaders: 1,
+                            localIdentName: '[name]__[local]___[hash:base64:5]',
                         },
-                        {
-                            loader: 'sass-loader',
-                            options: {
-                                // data: '@import "theme/_config.scss";',
-                                includePaths: [path.resolve(__dirname, './src')],
-                            },
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            // data: '@import "theme/_config.scss";',
+                            includePaths: [path.resolve(__dirname, './src')],
                         },
-                    ],
-                }),
+                    },
+                ],
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' }),
+                use: [
+                    {
+                        loader: 'style-loader',
+                    },
+                    {
+                        loader: 'css-loader',
+                    },
+                ],
             },
         ],
     },
